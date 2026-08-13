@@ -58,8 +58,8 @@ class MainActivity : Activity() {
                 return try {
                     WebResourceResponse(mimeType(path), "utf-8", assets.open(asset))
                 } catch (e: Exception) {
-                    WebResourceResponse("text/plain", "utf-8", ByteArrayInputStream(ByteArray(0)))
-                        .apply { statusCode = 404 }
+                    WebResourceResponse("text/plain", "utf-8", 404, "Not Found",
+                        emptyMap(), ByteArrayInputStream(ByteArray(0)))
                 }
             }
         }

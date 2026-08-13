@@ -34,10 +34,12 @@ object ExecChannel {
         override fun run() {
             val id: String? = synchronized(this@ExecChannel) {
                 val current = currentId
-                if (current == null) return null
-                handler.removeCallbacks(timeoutRunnable)
-                currentId = null
-                current
+                if (current == null) null
+                else {
+                    handler.removeCallbacks(timeoutRunnable)
+                    currentId = null
+                    current
+                }
             }
             if (id == null) return
             deliver(id, 124, "", "timeout")

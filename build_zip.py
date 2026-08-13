@@ -1,6 +1,8 @@
 import zipfile, os
 
-EXCLUDE_DIRS = {'.git', '.claude', 'control-app', '.github', 'webroot'}
+# webroot 暂保留在 zip 中：KSU 管理器 WebUI 是已验证正确的对照入口，
+# 等应用侧 exec 通道真机验证通过后再移除
+EXCLUDE_DIRS = {'.git', '.claude', 'control-app', '.github'}
 files = []
 for root, dirs, names in os.walk('.'):
     dirs[:] = [d for d in dirs if d not in EXCLUDE_DIRS]

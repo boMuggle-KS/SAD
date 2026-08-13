@@ -30,21 +30,22 @@ object ExecChannel {
     private var webViewRef = WeakReference<WebView>(null)
     private var contextRef = WeakReference<Context>(null)
     private val handler = Handler(Looper.getMainLooper())
-    private val timeoutRunnable = object : Runnable {
-        override fun run() {
-            val id: String? = synchronized(this@ExecChannel) {
-                val current = currentId
-                if (current == null) null
-                else {
-                    handler.removeCallbacks(timeoutRunnable)
-                    currentId = null
-                    current
-                }
+    // 初始化 lambda 不能自引用 timeoutRunnable，拆到独立方法
+    private val timeoutRunnable = Runnable { runTimeout() }
+
+    private fun runTimeout() {
+        val id: String? = synchronized(this) {
+            val current = currentId
+            if (current == null) null
+            else {
+                handler.removeCallbacks(timeoutRunnable)
+                currentId = null
+                current
             }
-            if (id == null) return
-            deliver(id, 124, "", "timeout")
-            synchronized(this@ExecChannel) { maybeSendNext() }
         }
+        if (id == null) return
+        deliver(id, 124, "", "timeout")
+        synchronized(this) { maybeSendNext() }
     }
 
     @Synchronized

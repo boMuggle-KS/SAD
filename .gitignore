@@ -11,3 +11,6 @@ control-app/captures/
 
 # Claude Code 本地配置
 .claude/
+
+# 模块打包产物
+*.zip

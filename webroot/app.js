@@ -103,7 +103,7 @@ function probeBridgeAsync() {
       delete window[callback];
       resolve(result);
     };
-    const timer = setTimeout(() => finish({ ok: false, error: "async_timeout" }), 5000);
+    const timer = setTimeout(() => finish({ ok: false, error: "async_timeout" }), 8000);
     window[callback] = (errno, stdout, stderr) => {
       if (String(stdout ?? "").includes("str-bridge-ok")) finish({ ok: true });
       else finish({ ok: false, error: `async_mismatch errno=${errno} out=${String(stdout ?? "").slice(0, 40)} err=${String(stderr ?? "").slice(0, 40)}` });
@@ -131,22 +131,32 @@ function probeBridgeSync() {
   }
 }
 
+let probePromise = null;
+
 async function probeBridge() {
-  if (typeof window.ksu?.exec !== "function") {
-    bridge = { mode: "none", reason: "当前页面未检测到控制桥接（window.ksu）。请通过 SAD 控制应用打开本页，不要在普通浏览器中打开。" };
-    return;
+  if (probePromise) return probePromise;
+  probePromise = (async () => {
+    if (typeof window.ksu?.exec !== "function") {
+      bridge = { mode: "none", reason: "当前页面未检测到控制桥接（window.ksu）。请通过 SAD 控制应用打开本页，不要在普通浏览器中打开。" };
+      return;
+    }
+    const asyncResult = await probeBridgeAsync();
+    if (asyncResult.ok) {
+      bridge = { mode: "async" };
+      return;
+    }
+    const syncResult = probeBridgeSync();
+    if (syncResult.ok) {
+      bridge = { mode: "sync" };
+      return;
+    }
+    bridge = { mode: "none", reason: `桥接调用失败（异步: ${asyncResult.error}; 同步: ${syncResult.error}）。请确认模块已正确安装并通过 SAD 控制应用打开本页。` };
+  })();
+  try {
+    return await probePromise;
+  } finally {
+    probePromise = null;
   }
-  const asyncResult = await probeBridgeAsync();
-  if (asyncResult.ok) {
-    bridge = { mode: "async" };
-    return;
-  }
-  const syncResult = probeBridgeSync();
-  if (syncResult.ok) {
-    bridge = { mode: "sync" };
-    return;
-  }
-  bridge = { mode: "none", reason: `桥接调用失败（异步: ${asyncResult.error}; 同步: ${syncResult.error}）。请确认模块已正确安装并通过 SAD 控制应用打开本页。` };
 }
 
 function parseValues(text) {
@@ -489,6 +499,7 @@ function renderStatus() {
   const active = verified || dataplaneActive;
   const dataplaneDegraded = dataplaneActive && !verified;
   const qualifying = backendState === "QUALIFYING" || backendState === "OBSERVE_ONLY";
+  const unavailable = backendState === "STATUS_UNAVAILABLE";
   const presentation = statePresentation[backendState] || statePresentation.FAIL_OPEN;
   const hero = nodes.statusHero || document.getElementById("statusHero");
   hero.classList.toggle("is-inactive", !active && !qualifying);
@@ -496,7 +507,7 @@ function renderStatus() {
   setText("heroKicker", paused ? "用户暂停" : dataplaneDegraded ? "实时拦截" : active ? "实时防护" : qualifying ? "正在准备" : "需要检查");
   setText("heroBadgeValue", paused ? "OFF" : active ? "ON" : qualifying ? "WAIT" : "OFF");
   setText("versionText", `版本 ${state.version || "--"}`);
-  setText("statusTitle", paused ? "已暂停" : dataplaneDegraded ? "拦截生效" : active ? "运行中" : qualifying ? "启动中" : "故障");
+  setText("statusTitle", unavailable ? "状态不可用" : paused ? "已暂停" : dataplaneDegraded ? "拦截生效" : active ? "运行中" : qualifying ? "启动中" : "故障");
   setText("statusDetail", paused ? "全部拦截已停止，点击下方按钮恢复" : dataplaneDegraded ? "内核拦截链路正常，健康检查仍在降级" : presentation[1]);
   if (nodes.pauseButton) nodes.pauseButton.textContent = paused ? "恢复" : "暂停";
   setText("rulesValue", count(state.rules));
@@ -656,16 +667,24 @@ async function refreshStatus(force = false) {
   if (refreshPromise) return refreshPromise;
   refreshPromise = (async () => {
     try {
+      // 桥接暂时失效时每次轮询重试探测，恢复后立即回到实时数据；
+      // probeBridge 自带并发守卫，不会堆叠请求。
+      if (bridge.mode === "none") await probeBridge();
       if (bridge.mode !== "none") {
         const result = await bridgeExec(`sh ${MODULE_DIR}/bin/status.sh ${MODULE_DIR}`);
         if (Number(result.errno) !== 0) throw new Error(result.stderr || "status_command_failed");
         if (!force && isEditableFocused()) return false;
         state = parseLiveStatus(result.stdout);
+        if (!force && isEditableFocused()) return false;
+        hasLiveStatus = true;
+        statusFailures = 0;
+        renderStatus();
+        return;
       }
       if (!force && isEditableFocused()) return false;
-      hasLiveStatus = true;
-      statusFailures = 0;
-      renderStatus();
+      // 桥接不可用时不渲染 preview 假数据，诚实显示状态不可用
+      hasLiveStatus = false;
+      renderUnavailable(new Error(bridge.reason || "bridge_unavailable"));
     } catch (error) {
       if (!force && isEditableFocused()) return false;
       statusFailures += 1;

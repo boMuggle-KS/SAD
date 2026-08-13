@@ -5,6 +5,8 @@ import android.app.Activity
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
@@ -25,16 +27,19 @@ class MainActivity : Activity() {
     companion object {
         private const val HOST = "sad-webui.local"
         private const val BASE_URL = "https://$HOST/index.html"
+        private const val SYNC_RETRIES = 2
+        private const val SYNC_RETRY_DELAY_MS = 2_500L
     }
 
     private lateinit var webView: WebView
+    private val syncHandler = Handler(Looper.getMainLooper())
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        ControlRequest.submit(this, "sync")
+        submitSyncRetry(0)
 
         if (Build.VERSION.SDK_INT >= 33 &&
             checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
@@ -70,8 +75,21 @@ class MainActivity : Activity() {
         webView.loadUrl(BASE_URL)
     }
 
+    /** 打开应用时写 sync 请求让模块回推权威状态；请求文件尚未被消费
+     *  （BUSY）时短暂重试，保证常驻通知每次打开应用都能刷新。 */
+    private fun submitSyncRetry(attempt: Int) {
+        when (ControlRequest.submit(this, "sync")) {
+            ControlRequest.Result.BUSY ->
+                if (attempt < SYNC_RETRIES) {
+                    syncHandler.postDelayed({ submitSyncRetry(attempt + 1) }, SYNC_RETRY_DELAY_MS)
+                }
+            else -> Unit
+        }
+    }
+
     override fun onDestroy() {
         super.onDestroy()
+        syncHandler.removeCallbacksAndMessages(null)
         ExecChannel.detach()
         if (::webView.isInitialized) webView.destroy()
     }

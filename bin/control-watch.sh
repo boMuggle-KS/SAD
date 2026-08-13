@@ -95,8 +95,10 @@ consume_request() {
 consume_exec() {
   [ -f "$EXEC_REQUEST" ] || return 0
   mv -f "$EXEC_REQUEST" "$EXEC_PROC" 2>/dev/null || return 0
-  exec_id=$(awk -F= '$1 == "id" { print $2; exit }' "$EXEC_PROC" 2>/dev/null)
-  exec_cmd=$(awk -F= '$1 == "cmd" { print $2; exit }' "$EXEC_PROC" 2>/dev/null)
+  # sed 而非 awk -F=：base64 结尾的 = 填充会被 awk 按分隔符切掉，
+  # 长命令会静默损坏；sed 只剥前缀，保留整段 base64。
+  exec_id=$(sed -n 's/^id=//p' "$EXEC_PROC" 2>/dev/null | head -n 1)
+  exec_cmd=$(sed -n 's/^cmd=//p' "$EXEC_PROC" 2>/dev/null | head -n 1)
   case "$exec_id" in ''|*[!A-Za-z0-9_-]*) rm -f "$EXEC_PROC"; return 0 ;; esac
   exec_out="$REQUEST_DIR/.exec-out.$$"
   exec_err="$REQUEST_DIR/.exec-err.$$"

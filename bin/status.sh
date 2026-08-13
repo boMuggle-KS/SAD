@@ -345,8 +345,9 @@ value hosts_target "$HOSTS_TARGET"
 value hosts_scope system_resolver_prefilter
 value backend "$backend"
 value backend_state "${backend_state:-FAIL_OPEN}"
-value backend_health "$health"
-value backend_reason "${reason:-unknown}"
+# 暂停分支设置的是 backend_health/backend_reason，其余路径由 health/reason 兜底
+value backend_health "${backend_health:-$health}"
+value backend_reason "${backend_reason:-${reason:-unknown}}"
 value dataplane_state "$dataplane_state"
 value kernel_mode "${kernel_mode:-0}"
 value rules "${rules:-0}"

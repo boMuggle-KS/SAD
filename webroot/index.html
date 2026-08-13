@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#f9f9ff" />
+  <meta name="color-scheme" content="light" />
+  <title>SAD</title>
+  <link rel="stylesheet" href="styles.css?v=1039" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="top-app-bar">
+      <div class="brand-lockup">
+        <span class="brand-mark"><img src="assets/shield-check.svg" alt="" /></span>
+        <div><h1>SAD</h1><p id="versionText">版本 --</p></div>
+      </div>
+      <button class="icon-button" id="refreshButton" type="button" aria-label="刷新状态" title="刷新状态">
+        <img src="assets/refresh-cw.svg" alt="" />
+      </button>
+    </header>
+
+    <main class="content" id="overviewView">
+      <section class="status-hero" id="statusHero" aria-live="polite">
+        <div class="hero-copy">
+          <div class="hero-status-line"><span class="status-pulse" aria-hidden="true"></span><span id="heroKicker">实时防护</span></div>
+          <h2 id="statusTitle">正在读取</h2>
+          <p id="statusDetail">正在连接模块服务</p>
+        </div>
+        <div class="hero-badge"><strong id="heroBadgeValue">ON</strong><span>PROTECTION</span></div>
+      </section>
+
+      <section class="metric-grid" aria-label="运行摘要">
+        <article class="metric-card metric-card-rules">
+          <div class="metric-heading"><span class="metric-icon metric-icon-rules"><img src="assets/database.svg" alt="" /></span><p>规则域名</p></div><strong id="rulesValue">--</strong><span>当前可用</span>
+        </article>
+        <article class="metric-card metric-card-blocked">
+          <div class="metric-heading"><span class="metric-icon metric-icon-blocked"><img src="assets/shield-check.svg" alt="" /></span><p>已拦截</p></div><strong id="blockedValue">--</strong><span id="queryValue">-- 次分类</span>
+        </article>
+        <article class="metric-card metric-card-process">
+          <div class="metric-heading"><span class="metric-icon metric-icon-process"><img src="assets/gauge.svg" alt="" /></span><p>守护进程</p></div><strong id="processValue">--</strong><span id="resourceValue">CPU -- · RSS --</span>
+        </article>
+        <article class="metric-card metric-card-effectiveness">
+          <div class="metric-heading"><span class="metric-icon metric-icon-effectiveness"><img src="assets/chart-no-axes-combined.svg" alt="" /></span><p>实测拦截率</p></div><strong id="effectivenessValue">等待流量</strong><span id="effectivenessDetail">打开应用后自动统计</span>
+        </article>
+      </section>
+
+      <section class="info-card" aria-label="运行信息">
+        <div class="info-list">
+        <div class="info-row info-row-ruleset"><div class="info-label"><span>规则集</span></div><strong id="activeRulesetValue">--</strong></div>
+        <div class="info-row info-action-row cloud-update-row"><div class="info-label"><span>规则更新</span></div><div class="cloud-update-controls"><select id="cloudIntervalSelect" aria-label="自动更新间隔"><option value="21600">6 小时</option><option value="43200">12 小时</option><option value="86400">24 小时</option><option value="129600" selected>36 小时</option><option value="172800">48 小时</option><option value="259200">72 小时</option></select><button class="text-button" id="cloudUpdateButton" type="button">更新</button></div></div>
+        <div class="info-row"><div class="info-label"><span>Hosts</span><small id="hostsDetailValue">--</small></div><strong id="hostsStateValue" data-state="unconfigured">--</strong></div>
+        <div class="info-row info-action-row"><div class="info-label"><span>更新地址</span><small>云端 generation URL</small></div><button class="text-button" id="cloudUrlButton" type="button">编辑</button></div>
+        <div class="info-row info-action-row"><div class="info-label"><span>IP 黑名单</span><small>管理自定义地址</small></div><button class="text-button" id="ipBlacklistButton" type="button">编辑</button></div>
+        <div class="info-row info-action-row"><div class="info-label"><span>域名黑名单</span><small>屏蔽恶意域名</small></div><button class="text-button" id="domainBlacklistButton" type="button">编辑</button></div>
+        <div class="info-row info-action-row"><div class="info-label"><span>域名白名单</span><small>放行指定域名</small></div><button class="text-button" id="domainAllowlistButton" type="button">编辑</button></div>
+        <div class="info-row info-action-row"><div class="info-label"><span>域名活动</span><small>最近连接与阻断</small></div><button class="text-button" id="activityButton" type="button">查看</button></div>
+        <div class="info-row info-action-row"><div class="info-label"><span>暂停防护</span><small>停止全部拦截</small></div><button class="text-button" id="pauseButton" type="button">暂停</button></div>
+        </div>
+      </section>
+
+      <div hidden aria-hidden="true">
+        <span id="backendValue"></span><span id="healthValue"></span><span id="reasonValue"></span>
+      </div>
+    </main>
+
+    <main class="content subpage" id="blacklistView" hidden>
+      <div class="subpage-header"><button class="icon-button" id="ipBlacklistBack" type="button" aria-label="返回"><img src="assets/arrow-left.svg" alt="" /></button><div><p>设置</p><h2>IP 黑名单</h2></div></div>
+      <section class="editor-surface">
+        <div class="editor-title"><div><h3>自定义阻断地址</h3><p>每行一个 IP 或 CIDR，最多 1000 条。保存后会重载拦截链路。</p></div><span class="editor-count" id="ipBlacklistCount">0 条</span></div>
+        <textarea id="ipBlacklistInput" spellcheck="false" autocapitalize="off" autocomplete="off" placeholder="例如：&#10;192.0.2.10&#10;198.51.100.0/24"></textarea>
+        <p class="editor-hint" id="ipBlacklistHint">支持 IPv4、IPv6 和 CIDR；保存后自动重启生效。</p>
+        <div class="editor-actions"><button class="text-button" id="ipBlacklistTest" type="button">检查拦截链路</button><button class="filled-button" id="ipBlacklistSave" type="button">保存</button></div>
+      </section>
+    </main>
+
+    <main class="content subpage" id="cloudView" hidden>
+      <div class="subpage-header"><button class="icon-button" id="cloudBack" type="button" aria-label="返回"><img src="assets/arrow-left.svg" alt="" /></button><div><p>设置</p><h2>云端更新</h2></div></div>
+      <section class="editor-surface">
+        <div class="editor-title"><div><h3>更新地址</h3><p>HTTPS 下载地址，留空保存表示禁用自动更新</p></div></div>
+        <input id="cloudUrlInput" type="text" spellcheck="false" autocapitalize="off" autocomplete="off" placeholder="输入云端 generation 下载地址" />
+        <p class="editor-hint" id="cloudHint">保存后立即生效，无需重启模块。</p>
+        <div class="editor-actions"><button class="filled-button" id="cloudSave" type="button">保存</button></div>
+      </section>
+    </main>
+
+    <main class="content subpage" id="domainBlacklistView" hidden>
+      <div class="subpage-header"><button class="icon-button" id="domainBlacklistBack" type="button" aria-label="返回"><img src="assets/arrow-left.svg" alt="" /></button><div><p>设置</p><h2>域名黑名单</h2></div></div>
+      <section class="editor-surface">
+        <div class="editor-title"><div><h3>自定义屏蔽域名</h3><p>每行一个域名，按后缀匹配（含所有子域名），最多 1000 条</p></div><span class="editor-count" id="domainBlacklistCount">0 条</span></div>
+        <textarea id="domainBlacklistInput" spellcheck="false" autocapitalize="off" autocomplete="off" placeholder="例如：&#10;ads.example.com&#10;tracker.example.org"></textarea>
+        <p class="editor-hint" id="domainBlacklistHint">支持 example.com 及其所有子域名；保存后自动重启生效。</p>
+        <div class="editor-actions"><button class="filled-button" id="domainBlacklistSave" type="button">保存</button></div>
+      </section>
+    </main>
+
+    <main class="content subpage" id="domainAllowlistView" hidden>
+      <div class="subpage-header"><button class="icon-button" id="domainAllowlistBack" type="button" aria-label="返回"><img src="assets/arrow-left.svg" alt="" /></button><div><p>设置</p><h2>域名白名单</h2></div></div>
+      <section class="editor-surface">
+        <div class="editor-title"><div><h3>自定义放行域名</h3><p>每行一个域名，按后缀匹配（含所有子域名），最多 1000 条</p></div><span class="editor-count" id="domainAllowlistCount">0 条</span></div>
+        <textarea id="domainAllowlistInput" spellcheck="false" autocapitalize="off" autocomplete="off" placeholder="例如：&#10;example.com&#10;tracker.example.org"></textarea>
+        <p class="editor-hint" id="domainAllowlistHint">支持 example.com 及其所有子域名；保存后自动重启生效。</p>
+        <div class="editor-actions"><button class="filled-button" id="domainAllowlistSave" type="button">保存</button></div>
+      </section>
+    </main>
+
+    <main class="content subpage" id="activityView" hidden>
+      <div class="subpage-header"><button class="icon-button" id="activityBack" type="button" aria-label="返回"><img src="assets/arrow-left.svg" alt="" /></button><div><p>诊断</p><h2>域名活动</h2></div><button class="text-button" id="activityRefresh" type="button">刷新</button></div>
+      <section class="activity-layout">
+        <div class="activity-column"><div class="activity-column-title"><span>放行</span><small id="activityAllowedCount">0</small></div><ul id="activityAllowedList"></ul></div>
+        <div class="activity-column activity-column-blocked"><div class="activity-column-title"><span>阻断</span><small id="activityBlockedCount">0</small></div><ul id="activityBlockedList"></ul></div>
+      </section>
+    </main>
+
+    <div class="snackbar" id="snackbar" role="status" aria-live="polite"></div>
+  </div>
+  <script src="app.js?v=1039" defer></script>
+</body>
+</html>

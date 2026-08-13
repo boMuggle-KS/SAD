@@ -1,0 +1,9 @@
+# Paste the HTTPS download URL of the published rules generation here and
+# copy this file to /data/adb/str-adblocker/cloud-update-url, for example:
+# https://github.com/310DSD/STR-ADBlocker-rules/releases/latest/download/generation.tar.gz
+# GitHub release 地址会自动依次尝试 cors.isteed.cc / gh.ddlc.top /
+# gh-proxy.com / ghfast.top / ghproxy.net 加速镜像，最后回退原始地址；
+# 其他自定义 HTTPS 地址按原样使用。
+# 使用 latest 地址时，会先经镜像读取 latest.json 解析出不可变 release tag，
+# 再从预热过的 tag 地址拉取规则包；任一步失败自动回退配置地址。
+# An empty file disables periodic cloud updates.

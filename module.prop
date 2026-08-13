@@ -1,0 +1,6 @@
+id=str_adblocker
+name=SAD
+version=1.0.39
+versionCode=1039
+author=鹤望兰_Strelitzia
+description=以 eBPF 快速路径为主的高性能广告拦截器

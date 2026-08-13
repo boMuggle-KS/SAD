@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <!-- signature 级权限：普通应用无法伪造广播；root(uid 0) 经 AOSP
+         checkComponentPermission 直接放行，模块侧广播不受影响 -->
+    <permission
+        android:name="com.str_adblocker.control.permission.STATE"
+        android:protectionLevel="signature" />
+
+    <application
+        android:allowBackup="false"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:theme="@style/AppTheme">
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <receiver
+            android:name=".StateReceiver"
+            android:exported="true"
+            android:permission="com.str_adblocker.control.permission.STATE" />
+    </application>
+
+</manifest>

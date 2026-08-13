@@ -1,0 +1,2 @@
+# Android 侧 shell 脚本必须保持 LF，避免 Windows 检出时 CRLF 破坏脚本
+*.sh text eol=lf

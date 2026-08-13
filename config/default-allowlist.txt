@@ -1,0 +1,66 @@
+# Bundled default allowlist, maintained independently from the user allowlist
+# (/data/adb/str-adblocker/allowlist.txt, edited in the WebUI). A domain also
+# allows all of its subdomains. The daemon loads this file in addition to the
+# user allowlist; the user blacklist still wins over both.
+#
+# ColorOS Fluid Cloud AI service: otherwise matched by the apps.coloros.com
+# suffix rule in the adblock policy, which breaks the Fluid Cloud jump/notice
+# feature on OPPO devices.
+iwisdom.apps.coloros.com
+
+# Lanzou download hosts: dmpdmp.com is used as a per-file HTTP host
+# (for example u864111.dmpdmp.com) and was incorrectly covered by 1Hosts.
+dmpdmp.com
+
+# WeChat login/mini-program infrastructure: HTTPDNS and login-protocol
+# telemetry matched by adblock suffixes can stall login handshakes.
+aedns.weixin.qq.com
+dns.weixin.qq.com.cn
+log.wtlogin.qq.com
+log1.wtlogin.qq.com
+ssl.log.wtlogin.qq.com
+
+# NetEase Yidun risk-control SDK endpoints used by login/authorization flows
+# (mini-program SDK, behavior verification, device fingerprint, one-tap
+# sign-in); blocking them makes authorization wait or fail.
+ir-sdk.dun.163.com
+ir-sdk.dun.163yun.com
+ac.dun.163.com
+ac.dun.163yun.com
+fp-upload.dun.163.com
+ye.dun.163yun.com
+
+# Huawei Smart Life / HMS connectivity used by device-page links and AGC
+# service gateways.
+connect-dre.hispace.hicloud.com
+awap2.jos.hicloud.com
+awap3.jos.hicloud.com
+
+# Tencent QQ P2P acceleration (p2p.qq.com and its subdomains were listed by
+# adblock sources as bandwidth/tracking endpoints).
+p2p.qq.com
+
+# Arknights (Hypergryph) telemetry endpoints; blocking them can stall login
+# and in-game announcements.
+data-track.yingxiong.com
+data-track-global.yingxiong.com
+
+# HeyTap functional services (firmware/config distribution, download, cloud
+# sync, push). Advertising subdomains under heytapmobi/heytapmobile are NOT
+# covered: only these non-ad families are allowed.
+heytapdl.com
+heytapdownload.com
+ocloud.heytapmobi.com
+cdo.heytapmobi.com
+cdo.heytapmobile.com
+push.heytapmobile.com
+
+# Arknights cloud log service on Aliyun (ark-cls project); the game's base
+# mode can lose connectivity while telemetry waits.
+ark-cls.cn-hangzhou.log.aliyuncs.com
+
+# ColorOS smartcard service domains (adblock sources list them as telemetry).
+smartcard.apps.coloros.com
+smartcardf.apps.coloros.com
+smartcardf-eu.apps.coloros.com
+

@@ -1,5 +1,6 @@
-// 应用内宿主的 ksu 桥接：window.ksu 已存在（KernelSU 管理器宿主）时整体跳过。
-// 应用内宿主通过 __strNativeBridge（Android JSInterface）把命令转发给模块侧
+// 应用内宿主的 ksu 桥接：window.ksu 已存在时整体跳过。模块不再提供
+// 管理器宿主 WebUI，控制应用是唯一宿主，由本文件注入 window.ksu。
+// 应用通过 __strNativeBridge（Android JSInterface）把命令转发给模块侧
 // root 执行，结果由原生层以 window.__strCb_<id>(errno, stdout, stderr) 回推。
 (function () {
   if (window.ksu || !window.__strNativeBridge) return;

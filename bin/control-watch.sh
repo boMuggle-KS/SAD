@@ -30,6 +30,7 @@ WATCH_PID="$RUNTIME/control-watch.pid"
 EXEC_ACTION=com.str_adblocker.control.EXEC_RESULT
 EXEC_TIMEOUT=45
 OUTPUT_CAP=262144
+EXEC_LOG="$RUNTIME/exec.broadcast.log"
 
 . "$MODDIR/bin/owned_lock.sh"
 
@@ -120,9 +121,25 @@ consume_exec() {
   mv -f "$exec_result_new" "$exec_result" 2>/dev/null || true
   rm -f "$exec_out" "$exec_err" "$EXEC_PROC"
   [ "$(getprop sys.boot_completed 2>/dev/null)" = 1 ] || return 0
-  command -v am >/dev/null 2>&1 || return 0
-  am broadcast -n com.str_adblocker.control/.StateReceiver \
-    -a "$EXEC_ACTION" --es id "$exec_id" >/dev/null 2>&1 || true
+  if ! command -v am >/dev/null 2>&1; then
+    log -t STR-AdBlocker "exec result broadcast skipped: am not found in PATH" 2>/dev/null
+    return 0
+  fi
+  exec_am_out=$(am broadcast --include-stopped-packages \
+    -n com.str_adblocker.control/.StateReceiver \
+    -a "$EXEC_ACTION" --es id "$exec_id" 2>&1)
+  exec_am_errno=$?
+  {
+    printf '%s id=%s errno=%s out=%s\n' \
+      "$(date +%s)" "$exec_id" "${exec_am_errno:-1}" "${exec_am_out:-empty}"
+  } >> "$EXEC_LOG" 2>/dev/null || true
+  if [ -f "$EXEC_LOG" ] && [ "$(stat -c %s "$EXEC_LOG" 2>/dev/null)" -gt 8192 ]; then
+    tail -c 4096 "$EXEC_LOG" > "$EXEC_LOG.new" 2>/dev/null
+    mv -f "$EXEC_LOG.new" "$EXEC_LOG" 2>/dev/null || true
+  fi
+  if [ "${exec_am_errno:-1}" != 0 ]; then
+    log -t STR-AdBlocker "exec result broadcast failed: errno=${exec_am_errno:-1} ${exec_am_out:-}" 2>/dev/null
+  fi
 }
 
 while [ -d "$MODDIR" ]; do

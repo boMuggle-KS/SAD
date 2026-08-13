@@ -24,6 +24,8 @@ object ExecChannel {
     private const val RESULT_SUFFIX = ".result"
     private const val TIMEOUT_MS = 60_000L
     private const val BUSY_RETRY_MS = 1_000L
+    private const val READ_RETRY_MS = 300L
+    private const val READ_RETRY_MAX = 10
 
     private val queue = ArrayDeque<Pair<String, String>>()
     private var currentId: String? = null
@@ -78,9 +80,19 @@ object ExecChannel {
         if (cbId != currentId) return
         handler.removeCallbacks(timeoutRunnable)
         currentId = null
+        readResult(context.applicationContext, cbId, 0)
+    }
+
+    /**
+     * 模块侧 root 经 /data/media/0 直写的结果文件，应用经 FUSE 视图读取时
+     * 目录缓存可能尚未失效（广播已到达但文件不可见）。短暂重试等待文件
+     * 出现，最多约 3 秒，之后按缺失处理。
+     */
+    private fun readResult(context: Context, cbId: String, attempt: Int) {
         var errno = 1
         var stdout = ""
         var stderr = "result missing"
+        var done = false
         val result = context.getExternalFilesDir(null)
             ?.let { File(it, "$RESULT_PREFIX$cbId$RESULT_SUFFIX") }
         if (result != null && result.exists()) {
@@ -96,9 +108,14 @@ object ExecChannel {
                 stderr = "result parse failed"
             }
             result.delete()
+            done = true
+        }
+        if (!done && attempt < READ_RETRY_MAX) {
+            handler.postDelayed({ readResult(context, cbId, attempt + 1) }, READ_RETRY_MS)
+            return
         }
         deliver(cbId, errno, stdout, stderr)
-        maybeSendNext()
+        synchronized(this) { maybeSendNext() }
     }
 
     private fun maybeSendNext() {

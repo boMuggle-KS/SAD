@@ -133,7 +133,7 @@ function probeBridgeSync() {
 
 async function probeBridge() {
   if (typeof window.ksu?.exec !== "function") {
-    bridge = { mode: "none", reason: "当前页面未检测到 KernelSU 桥接（window.ksu）。请通过 SAD 控制应用或 KernelSU 管理器打开模块 WebUI，不要在普通浏览器中打开。" };
+    bridge = { mode: "none", reason: "当前页面未检测到控制桥接（window.ksu）。请通过 SAD 控制应用打开本页，不要在普通浏览器中打开。" };
     return;
   }
   const asyncResult = await probeBridgeAsync();
@@ -146,7 +146,7 @@ async function probeBridge() {
     bridge = { mode: "sync" };
     return;
   }
-  bridge = { mode: "none", reason: `桥接调用失败（异步: ${asyncResult.error}; 同步: ${syncResult.error}）。请确认模块已正确安装并通过 SAD 控制应用或 KernelSU 管理器打开本页。` };
+  bridge = { mode: "none", reason: `桥接调用失败（异步: ${asyncResult.error}; 同步: ${syncResult.error}）。请确认模块已正确安装并通过 SAD 控制应用打开本页。` };
 }
 
 function parseValues(text) {
@@ -621,7 +621,7 @@ async function requestCloudUpdate() {
   const button = nodes.cloudUpdateButton || document.getElementById("cloudUpdateButton");
   if (!button || button.disabled) return;
   if (bridge.mode === "none") {
-    notify("WebUI 桥接不可用：请在 KernelSU 管理器内打开本页，或直接在模块页执行 action 更新");
+    notify("控制桥接不可用：请通过 SAD 控制应用打开本页，或直接在模块页执行 action 更新");
     return;
   }
   if (state.cloud_update_enabled !== "true") {

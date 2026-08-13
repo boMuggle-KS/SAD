@@ -1,14 +1,25 @@
-name: Build control APK
+name: Build artifacts
 
 on:
   push:
     paths:
       - 'control-app/**'
+      - 'webroot/**'
+      - 'bin/**'
+      - 'config/**'
+      - 'rules/**'
+      - 'system/**'
+      - 'service.sh'
+      - 'customize.sh'
+      - 'action.sh'
+      - 'uninstall.sh'
+      - 'module.prop'
+      - 'build_zip.py'
       - '.github/workflows/build-apk.yml'
   workflow_dispatch:
 
 jobs:
-  build:
+  apk:
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -32,3 +43,16 @@ jobs:
         with:
           name: sad-control-apk
           path: control-app/app/build/outputs/apk/debug/*.apk
+
+  module-zip:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Package module zip
+        run: python3 build_zip.py
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sad-module-zip
+          path: SAD-v*.zip

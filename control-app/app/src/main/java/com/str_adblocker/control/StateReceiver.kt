@@ -6,6 +6,7 @@ import android.content.Intent
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
+import android.util.Log
 
 /**
  * 唯一的广播入口（manifest 导出 + signature 权限，root 广播直接放行）：
@@ -16,6 +17,7 @@ import android.os.SystemClock
 class StateReceiver : BroadcastReceiver() {
 
     companion object {
+        private const val TAG = "SAD"
         const val ACTION_STATE = "com.str_adblocker.control.STATE"
         const val ACTION_PAUSE = "com.str_adblocker.control.PAUSE"
         const val ACTION_RESUME = "com.str_adblocker.control.RESUME"
@@ -37,6 +39,7 @@ class StateReceiver : BroadcastReceiver() {
             ACTION_STATE -> {
                 val state = intent.getStringExtra(EXTRA_STATE) ?: "UNKNOWN"
                 val reason = intent.getStringExtra(EXTRA_REASON) ?: "unknown"
+                Log.d(TAG, "STATE broadcast received: state=$state reason=$reason")
                 handler.removeCallbacksAndMessages(null)
                 NotificationHelper.update(context, state, reason)
             }
@@ -44,6 +47,7 @@ class StateReceiver : BroadcastReceiver() {
             ACTION_PAUSE, ACTION_RESUME -> {
                 val command = if (intent.action == ACTION_PAUSE) "pause" else "resume"
                 val app = context.applicationContext
+                Log.d(TAG, "notification action: $command")
                 submitWithRetry(app, command, 0)
                 NotificationHelper.showPending(app)
                 scheduleRevert(app)
@@ -52,6 +56,7 @@ class StateReceiver : BroadcastReceiver() {
             ACTION_EXEC_RESULT -> {
                 val id = intent.getStringExtra(EXTRA_ID) ?: return
                 if (!id.matches(Regex("[A-Za-z0-9_-]+"))) return
+                Log.d(TAG, "EXEC_RESULT broadcast received: id=$id")
                 ExecChannel.onResult(context, id)
             }
         }

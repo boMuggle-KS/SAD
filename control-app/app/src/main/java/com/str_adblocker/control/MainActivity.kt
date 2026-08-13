@@ -5,11 +5,13 @@ import android.app.Activity
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.widget.Toast
 import java.io.ByteArrayInputStream
 
 /**
@@ -38,6 +40,7 @@ class MainActivity : Activity() {
             checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
         ) {
             requestPermissions(arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), 100)
+            Toast.makeText(this, "未授予通知权限：模块状态通知将无法显示", Toast.LENGTH_LONG).show()
         }
 
         webView = findViewById(R.id.webView)
@@ -71,6 +74,18 @@ class MainActivity : Activity() {
         super.onDestroy()
         ExecChannel.detach()
         if (::webView.isInitialized) webView.destroy()
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == 100) {
+            val granted = grantResults.firstOrNull() == PackageManager.PERMISSION_GRANTED
+            Log.d("SAD", "POST_NOTIFICATIONS granted=$granted")
+        }
     }
 
     private fun mimeType(path: String): String = when (path.substringAfterLast('.', "").lowercase()) {

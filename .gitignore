@@ -2,6 +2,7 @@
 control-app/.gradle/
 control-app/build/
 control-app/app/build/
+control-app/dist/
 control-app/local.properties
 control-app/captures/
 *.iml

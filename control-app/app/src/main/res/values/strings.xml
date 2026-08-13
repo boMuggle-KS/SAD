@@ -1,9 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">SAD 控制</string>
-    <string name="status_unknown">状态未知（点击「刷新」同步）</string>
-    <string name="btn_refresh">刷新状态</string>
-    <string name="btn_open_webui">打开 WebUI</string>
-    <string name="webui_unavailable">未能打开 WebUI。请在 KernelSU 管理器（或 KSUWebUI）的模块页面中打开。</string>
-    <string name="hint_first_run">首次使用请授予通知权限；授予后会自动尝试打开 WebUI。</string>
 </resources>

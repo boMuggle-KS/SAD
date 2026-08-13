@@ -103,7 +103,7 @@ function probeBridgeAsync() {
       delete window[callback];
       resolve(result);
     };
-    const timer = setTimeout(() => finish({ ok: false, error: "async_timeout" }), 1800);
+    const timer = setTimeout(() => finish({ ok: false, error: "async_timeout" }), 5000);
     window[callback] = (errno, stdout, stderr) => {
       if (String(stdout ?? "").includes("str-bridge-ok")) finish({ ok: true });
       else finish({ ok: false, error: `async_mismatch errno=${errno} out=${String(stdout ?? "").slice(0, 40)} err=${String(stderr ?? "").slice(0, 40)}` });
@@ -133,7 +133,7 @@ function probeBridgeSync() {
 
 async function probeBridge() {
   if (typeof window.ksu?.exec !== "function") {
-    bridge = { mode: "none", reason: "当前页面未检测到 KernelSU 桥接（window.ksu）。请通过 KernelSU 管理器打开模块 WebUI，不要在普通浏览器中打开。" };
+    bridge = { mode: "none", reason: "当前页面未检测到 KernelSU 桥接（window.ksu）。请通过 SAD 控制应用或 KernelSU 管理器打开模块 WebUI，不要在普通浏览器中打开。" };
     return;
   }
   const asyncResult = await probeBridgeAsync();
@@ -146,7 +146,7 @@ async function probeBridge() {
     bridge = { mode: "sync" };
     return;
   }
-  bridge = { mode: "none", reason: `桥接调用失败（异步: ${asyncResult.error}; 同步: ${syncResult.error}）。请确认模块已正确安装并通过 KernelSU 管理器打开本页。` };
+  bridge = { mode: "none", reason: `桥接调用失败（异步: ${asyncResult.error}; 同步: ${syncResult.error}）。请确认模块已正确安装并通过 SAD 控制应用或 KernelSU 管理器打开本页。` };
 }
 
 function parseValues(text) {
